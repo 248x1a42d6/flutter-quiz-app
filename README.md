@@ -209,22 +209,24 @@ Users receive clear messages when an operation cannot be completed.
 - The Android launcher label currently displays `quiz_app`.
 
 
+
 ## Application Screenshots
 
 ### 1. Category Screen
-![Category Screen](screenshots/category.png)
+<img src="screenshots/category.png" width="250" alt="Category Screen">
 
 ### 2. Quiz Questions Screen
-![Quiz Questions Screen](screenshots/questions.png)
+<img src="screenshots/questions.png" width="250" alt="Quiz Questions Screen">
 
 ### 3. Quiz Results Screen
-![Quiz Results Screen](screenshots/results.png)
+<img src="screenshots/results.png" width="250" alt="Quiz Results Screen">
 
 ### 4. Add Question Screen
-![Add Question Screen](screenshots/add_question.png)
+<img src="screenshots/add_question.png" width="250" alt="Add Question Screen">
 
 ### 5. Question Details Screen
-![Question Details Screen](screenshots/question_details.png)
+<img src="screenshots/question_details.png" width="250" alt="Question Details Screen">
+
 
 
 ## Release APK
