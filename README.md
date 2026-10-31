@@ -228,20 +228,29 @@ Users receive clear messages when an operation cannot be completed.
 <img src="screenshots/question_details.png" width="250" alt="Question Details Screen">
 
 
+
 ## Release APK
 
-**Quiz Master v1.0.0** has been successfully built,
+**Quiz Master v1.0.1** has been successfully built,
 installed, and tested on a physical Android phone.
 
-- **Version:** 1.0.0
+- **Version:** 1.0.1
 - **Platform:** Android
-- **APK Filename:** Quiz_Master_v1.0.apk
-- **APK Size:** 50.2 MB
+- **APK Filename:** Quiz_Master_v1.0.1.apk
+- **APK Size:** Approximately 50.2 MB
 - **Status:** Released and tested
+
+### What's New in v1.0.1
+
+- Added Best Score indicators to all four quiz categories.
+- Best Scores remain saved after restarting the application.
+- Highest scores are retained even after lower-scoring attempts.
+- Existing quiz features and design remain unchanged.
 
 ### Download APK
 
-[Download Quiz Master v1.0.0](https://github.com/248x1a42d6/flutter-quiz-app/releases/tag/v1.0.0)
+[Download Quiz Master v1.0.1](https://github.com/248x1a42d6/flutter-quiz-app/releases/tag/v1.0.1)
+
 
 ## Defect Log
 
@@ -252,6 +261,9 @@ installed, and tested on a physical Android phone.
 | Correct answer automatically selected | Open the original Add Question form without selecting a correct answer | Changed the default answer to null and added mandatory selection validation | Fixed |
 | Long questions and options needed layout verification | Add a question near the text limits and open Question Details | Verified text wrapping and scrolling without visible overflow | Verified |
 | Landscape layout needed verification | Rotate the phone while viewing quiz questions | Verified scrolling, answer selection persistence, and navigation | Verified |
+
+| Best Score not visible after restarting the app | Complete a quiz, close the app, and reopen it. The previous best score was not displayed on the Category Screen | Added Best Score indicators to all category cards using saved scores from QuizProvider. Verified persistence after restarting | Fixed in v1.0.1 |
+
 
 
 ## Future Enhancements
