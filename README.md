@@ -228,19 +228,31 @@ Users receive clear messages when an operation cannot be completed.
 <img src="screenshots/question_details.png" width="250" alt="Question Details Screen">
 
 
-
 ## Release APK
 
-The Android release APK will be added after the final release build and physical-device verification.
+**Quiz Master v1.0.0** has been successfully built,
+installed, and tested on a physical Android phone.
+
+- **Version:** 1.0.0
+- **Platform:** Android
+- **APK Filename:** Quiz_Master_v1.0.apk
+- **APK Size:** 50.2 MB
+- **Status:** Released and tested
+
+### Download APK
+
+[Download Quiz Master v1.0.0](https://github.com/248x1a42d6/flutter-quiz-app/releases/tag/v1.0.0)
 
 ## Defect Log
 
-| Issue | Resolution | Status |
-|---|---|---|
-| Quiz questions unavailable without Internet | Added error message and Retry button | Fixed |
-| Correct answer automatically selected in custom question form | Added mandatory correct-answer selection | Fixed |
-| Long text and landscape layout needed verification | Tested scrolling and screen rotation | Verified |
-| Home Screen empty categories state is not naturally reachable | Added simulated empty-state widget test | Test coverage added |
+| Issue | Steps to Reproduce | Resolution | Status |
+|---|---|---|---|
+| Release APK unable to load online questions | Install the original APK and select an online quiz category with Internet enabled | Added INTERNET permission to AndroidManifest.xml and rebuilt the APK | Fixed |
+| Quiz API unavailable without Internet | Disable Internet and select a quiz category | Added an error message and Retry button; verified recovery after reconnecting | Handled |
+| Correct answer automatically selected | Open the original Add Question form without selecting a correct answer | Changed the default answer to null and added mandatory selection validation | Fixed |
+| Long questions and options needed layout verification | Add a question near the text limits and open Question Details | Verified text wrapping and scrolling without visible overflow | Verified |
+| Landscape layout needed verification | Rotate the phone while viewing quiz questions | Verified scrolling, answer selection persistence, and navigation | Verified |
+
 
 ## Future Enhancements
 
