@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/quiz_provider.dart';
-import 'question_screen.dart';
-import 'add_question_screen.dart';
 import '../theme/app_theme.dart';
+import 'add_question_screen.dart';
+import 'question_screen.dart';
 
 class CategoryScreen extends StatelessWidget {
   const CategoryScreen({super.key});
@@ -17,47 +17,28 @@ class CategoryScreen extends StatelessWidget {
     Icons.account_balance,
   ];
 
-  static const List<Color> categoryColors = [
-    Color(0xFF6C63FF),
-    Color(0xFF00A896),
-    Color(0xFFFF9800),
-    Color(0xFFEC4899),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<QuizProvider>();
+    final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3FF),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text(
           'Quiz Master',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: const Color(0xFFF5F3FF),
+        backgroundColor: AppTheme.background,
       ),
-      body: provider.isLoading
+      body: provider.isLoading &&
+          provider.currentQuizQuestions.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : provider.error != null
-          ? Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(provider.error!),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: provider.loadData,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      )
           : _buildHome(context, provider),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFF6C63FF),
-        foregroundColor: Colors.white,
+        backgroundColor: AppTheme.primary,
+        foregroundColor: colors.onPrimary,
         icon: const Icon(Icons.add),
         label: const Text('Add Question'),
         onPressed: () {
@@ -77,6 +58,7 @@ class CategoryScreen extends StatelessWidget {
       QuizProvider provider,
       ) {
     final categories = provider.categories;
+    final colors = Theme.of(context).colorScheme;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
@@ -84,36 +66,36 @@ class CategoryScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               colors: [
-                Color(0xFF6C63FF),
-                Color(0xFF9C71F7),
+                AppTheme.primary,
+                AppTheme.primary.withValues(alpha: 0.75),
               ],
             ),
             borderRadius: BorderRadius.circular(24),
           ),
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 Icons.auto_awesome,
-                color: Colors.white,
+                color: colors.onPrimary,
                 size: 36,
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 'Welcome to Quiz Master!',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: colors.onPrimary,
                   fontSize: 25,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 'Choose a category and challenge yourself.',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: colors.onPrimary,
                   fontSize: 15,
                 ),
               ),
@@ -125,7 +107,9 @@ class CategoryScreen extends StatelessWidget {
 
         Text(
           'Explore Categories',
-          style: Theme.of(context).textTheme.headlineSmall
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
 
@@ -133,30 +117,30 @@ class CategoryScreen extends StatelessWidget {
 
         if (categories.isEmpty)
           const Center(
-            child: Text('No categories available'),
+            child: Text('No quiz categories available'),
           ),
 
         ...List.generate(categories.length, (index) {
           final category = categories[index];
 
-          final icon = categoryIcons[
-          index % categoryIcons.length];
+          final icon =
+          categoryIcons[index % categoryIcons.length];
 
           final color = AppTheme.categoryColor(index);
 
-          final questionCount = provider.questions
-              .where((q) => q.categoryId == category.id)
-              .length;
-
+          // API questions are loaded when the quiz starts,
+          // so don't show an inaccurate question count here.
           return Container(
             margin: const EdgeInsets.only(bottom: 14),
             child: Material(
-              color: Colors.white,
+              color: colors.surface,
               elevation: 2,
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
                 onTap: () {
+                  if (provider.isLoading) return;
+
                   provider.startQuiz(category.id);
 
                   Navigator.push(
@@ -197,9 +181,9 @@ class CategoryScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 5),
                             Text(
-                              '$questionCount Questions',
+                              category.description,
                               style: TextStyle(
-                                color: Colors.grey.shade600,
+                                color: colors.onSurfaceVariant,
                               ),
                             ),
                           ],
