@@ -51,7 +51,7 @@ class CategoryScreen extends StatelessWidget {
         ],
       ),
 
-      // Home Screen states are independent of Quiz API states.
+      // Loading, error, empty and populated states.
       body: provider.isLoading
           ? const Center(
         child: CircularProgressIndicator(),
@@ -166,7 +166,8 @@ class CategoryScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
             children: [
               Icon(
                 Icons.auto_awesome,
@@ -215,6 +216,10 @@ class CategoryScreen extends StatelessWidget {
           index % categoryIcons.length];
 
           final color = AppTheme.categoryColor(index);
+
+          // Retrieve the saved best score for this category.
+          final bestScore =
+          provider.bestScore(category.id);
 
           return Container(
             margin: const EdgeInsets.only(bottom: 14),
@@ -276,13 +281,41 @@ class CategoryScreen extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+
                             const SizedBox(height: 5),
+
                             Text(
                               category.description,
                               style: TextStyle(
                                 color:
                                 colors.onSurfaceVariant,
                               ),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            // GP requirement:
+                            // Display the saved best score.
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.emoji_events_outlined,
+                                  size: 18,
+                                  color: color,
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    'Best Score: $bestScore',
+                                    style: TextStyle(
+                                      color: color,
+                                      fontSize: 13,
+                                      fontWeight:
+                                      FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
