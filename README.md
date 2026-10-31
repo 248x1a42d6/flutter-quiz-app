@@ -208,27 +208,24 @@ Users receive clear messages when an operation cannot be completed.
 - Question shuffling is implemented, but preventing repeats across every future app session is not guaranteed.
 - The Android launcher label currently displays `quiz_app`.
 
-## Screenshots
 
-Add at least three actual screenshots of the running application to the repository.
+## Application Screenshots
 
-Suggested screenshots:
-
-1. Category Screen
-2. Quiz Questions Screen
-3. Quiz Results Screen
-4. Add Question Screen
-5. Question Detail View
-
-After uploading images into a `screenshots` folder, reference them here:
-
-```markdown
+### 1. Category Screen
 ![Category Screen](screenshots/category.png)
 
-![Quiz Questions](screenshots/questions.png)
+### 2. Quiz Questions Screen
+![Quiz Questions Screen](screenshots/questions.png)
 
-![Quiz Results](screenshots/results.png)
-```
+### 3. Quiz Results Screen
+![Quiz Results Screen](screenshots/results.png)
+
+### 4. Add Question Screen
+![Add Question Screen](screenshots/add_question.png)
+
+### 5. Question Details Screen
+![Question Details Screen](screenshots/question_details.png)
+
 
 ## Release APK
 
