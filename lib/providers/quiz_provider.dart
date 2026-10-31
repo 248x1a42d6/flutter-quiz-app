@@ -3,10 +3,12 @@ import 'package:flutter/foundation.dart';
 
 import '../models/question.dart';
 import '../models/quiz_category.dart';
+import '../services/quiz_api_service.dart';
 import '../services/quiz_service.dart';
 
 class QuizProvider extends ChangeNotifier {
   final QuizService _service = QuizService();
+  final QuizApiService _apiService = QuizApiService();
 
   final List<QuizCategory> _categories = [
     const QuizCategory(
@@ -31,7 +33,10 @@ class QuizProvider extends ChangeNotifier {
     ),
   ];
 
-  List<Question> _questions = [];
+  List<Question> _customQuestions = [];
+  final List<Question> _apiQuestions = [];
+  List<Question> _currentQuizQuestions = [];
+
   Map<String, int> _bestScores = {};
 
   bool _isLoading = false;
@@ -40,13 +45,18 @@ class QuizProvider extends ChangeNotifier {
   String? _currentCategoryId;
   int _currentQuestionIndex = 0;
   int _score = 0;
+
+  int _requestId = 0;
+
   final Map<String, int> _selectedAnswers = {};
 
   List<QuizCategory> get categories =>
       List.unmodifiable(_categories);
 
-  List<Question> get questions =>
-      List.unmodifiable(_questions);
+  List<Question> get questions => List.unmodifiable([
+    ..._apiQuestions,
+    ..._customQuestions,
+  ]);
 
   Map<String, int> get bestScores =>
       Map.unmodifiable(_bestScores);
@@ -54,22 +64,22 @@ class QuizProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   int get score => _score;
-  int get currentQuestionIndex => _currentQuestionIndex;
 
-  List<Question> get currentQuizQuestions {
-    return _questions
-        .where((q) => q.categoryId == _currentCategoryId)
-        .toList();
-  }
+  int get currentQuestionIndex =>
+      _currentQuestionIndex;
+  String? get currentCategoryId => _currentCategoryId;
+
+  List<Question> get currentQuizQuestions =>
+      List.unmodifiable(_currentQuizQuestions);
 
   Question? get currentQuestion {
-    final list = currentQuizQuestions;
-
-    if (_currentQuestionIndex >= list.length) {
+    if (_currentQuestionIndex >=
+        _currentQuizQuestions.length) {
       return null;
     }
 
-    return list[_currentQuestionIndex];
+    return _currentQuizQuestions[
+    _currentQuestionIndex];
   }
 
   int? selectedAnswer(String questionId) =>
@@ -84,7 +94,7 @@ class QuizProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _questions = await _service.loadQuestions();
+      _customQuestions = await _service.loadQuestions();
       _bestScores = await _service.loadBestScores();
     } catch (e) {
       _error = 'Unable to load quiz data. Please retry.';
@@ -94,8 +104,76 @@ class QuizProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> startQuiz(String categoryId) async {
+    if (_isLoading) return;
+
+    if (!_categories.any((c) => c.id == categoryId)) {
+      _error = 'Invalid quiz category.';
+      notifyListeners();
+      return;
+    }
+
+    final requestId = ++_requestId;
+
+    _currentCategoryId = categoryId;
+    _currentQuestionIndex = 0;
+    _score = 0;
+    _selectedAnswers.clear();
+    _currentQuizQuestions = [];
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final fetchedQuestions =
+      await _apiService.fetchQuestions(categoryId);
+
+      if (requestId != _requestId) return;
+
+      _apiQuestions.removeWhere(
+            (q) => q.categoryId == categoryId,
+      );
+      _apiQuestions.addAll(fetchedQuestions);
+
+      final categoryCustomQuestions = _customQuestions
+          .where((q) => q.categoryId == categoryId)
+          .toList();
+
+      _currentQuizQuestions = [
+        ...fetchedQuestions,
+        ...categoryCustomQuestions,
+      ]..shuffle();
+
+      if (_currentQuizQuestions.isEmpty) {
+        _error = 'No questions available.';
+      }
+    } catch (e) {
+      if (requestId != _requestId) return;
+
+      // Allow saved custom questions to work offline.
+      _currentQuizQuestions = _customQuestions
+          .where((q) => q.categoryId == categoryId)
+          .toList()
+        ..shuffle();
+
+      if (_currentQuizQuestions.isEmpty) {
+        _error =
+        'Could not load questions. Check your internet '
+            'connection and retry.';
+      }
+    } finally {
+      if (requestId == _requestId) {
+        _isLoading = false;
+        notifyListeners();
+      }
+    }
+  }
+
   Future<bool> addQuestion(Question question) async {
-    if (!_categories.any((c) => c.id == question.categoryId)) {
+    if (!_categories.any(
+          (c) => c.id == question.categoryId,
+    )) {
       _error = 'Invalid quiz category.';
       notifyListeners();
       return false;
@@ -105,17 +183,27 @@ class QuizProvider extends ChangeNotifier {
         question.options.length < 2 ||
         question.options.any((o) => o.trim().isEmpty) ||
         question.correctAnswerIndex < 0 ||
-        question.correctAnswerIndex >= question.options.length) {
-      _error = 'Please enter a valid question and answers.';
+        question.correctAnswerIndex >=
+            question.options.length) {
+      _error =
+      'Please enter a valid question and answers.';
       notifyListeners();
       return false;
     }
 
     try {
-      final updated = [..._questions, question];
-      await _service.saveQuestions(updated);
-      _questions = updated;
+      final updatedCustomQuestions = [
+        ..._customQuestions,
+        question,
+      ];
+
+      await _service.saveQuestions(
+        updatedCustomQuestions,
+      );
+
+      _customQuestions = updatedCustomQuestions;
       _error = null;
+
       notifyListeners();
       return true;
     } catch (e) {
@@ -123,14 +211,6 @@ class QuizProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-  }
-
-  void startQuiz(String categoryId) {
-    _currentCategoryId = categoryId;
-    _currentQuestionIndex = 0;
-    _score = 0;
-    _selectedAnswers.clear();
-    notifyListeners();
   }
 
   void answerQuestion(int answerIndex) {
@@ -154,7 +234,7 @@ class QuizProvider extends ChangeNotifier {
 
   bool nextQuestion() {
     if (_currentQuestionIndex + 1 >=
-        currentQuizQuestions.length) {
+        _currentQuizQuestions.length) {
       return false;
     }
 
