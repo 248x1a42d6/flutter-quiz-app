@@ -58,6 +58,10 @@ class QuizProvider extends ChangeNotifier {
     ..._customQuestions,
   ]);
 
+  // Returns only questions created by the user.
+  List<Question> get customQuestions =>
+      List.unmodifiable(_customQuestions);
+
   Map<String, int> get bestScores =>
       Map.unmodifiable(_bestScores);
 
@@ -67,7 +71,9 @@ class QuizProvider extends ChangeNotifier {
 
   int get currentQuestionIndex =>
       _currentQuestionIndex;
-  String? get currentCategoryId => _currentCategoryId;
+
+  String? get currentCategoryId =>
+      _currentCategoryId;
 
   List<Question> get currentQuizQuestions =>
       List.unmodifiable(_currentQuizQuestions);
@@ -88,6 +94,7 @@ class QuizProvider extends ChangeNotifier {
   int bestScore(String categoryId) =>
       _bestScores[categoryId] ?? 0;
 
+  // Load saved custom questions and best scores.
   Future<void> loadData() async {
     _isLoading = true;
     _error = null;
@@ -104,6 +111,7 @@ class QuizProvider extends ChangeNotifier {
     }
   }
 
+  // Fetch questions from the API for a selected category.
   Future<void> startQuiz(String categoryId) async {
     if (_isLoading) return;
 
@@ -151,7 +159,7 @@ class QuizProvider extends ChangeNotifier {
     } catch (e) {
       if (requestId != _requestId) return;
 
-      // Allow saved custom questions to work offline.
+      // Saved custom questions remain usable offline.
       _currentQuizQuestions = _customQuestions
           .where((q) => q.categoryId == categoryId)
           .toList()
@@ -170,6 +178,7 @@ class QuizProvider extends ChangeNotifier {
     }
   }
 
+  // Add and save a custom question.
   Future<bool> addQuestion(Question question) async {
     if (!_categories.any(
           (c) => c.id == question.categoryId,
@@ -181,7 +190,9 @@ class QuizProvider extends ChangeNotifier {
 
     if (question.questionText.trim().isEmpty ||
         question.options.length < 2 ||
-        question.options.any((o) => o.trim().isEmpty) ||
+        question.options.any(
+              (option) => option.trim().isEmpty,
+        ) ||
         question.correctAnswerIndex < 0 ||
         question.correctAnswerIndex >=
             question.options.length) {
@@ -203,8 +214,8 @@ class QuizProvider extends ChangeNotifier {
 
       _customQuestions = updatedCustomQuestions;
       _error = null;
-
       notifyListeners();
+
       return true;
     } catch (e) {
       _error = 'Could not save the question.';
@@ -213,6 +224,50 @@ class QuizProvider extends ChangeNotifier {
     }
   }
 
+  // Delete only user-created custom questions.
+  Future<bool> deleteQuestion(String questionId) async {
+    final exists = _customQuestions.any(
+          (question) => question.id == questionId,
+    );
+
+    if (!exists) {
+      _error = 'Custom question not found.';
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      final updatedQuestions = _customQuestions
+          .where(
+            (question) => question.id != questionId,
+      )
+          .toList();
+
+      // Persist the deletion using SharedPreferences.
+      await _service.saveQuestions(updatedQuestions);
+
+      _customQuestions = updatedQuestions;
+
+      _currentQuizQuestions = _currentQuizQuestions
+          .where(
+            (question) => question.id != questionId,
+      )
+          .toList();
+
+      _selectedAnswers.remove(questionId);
+
+      _error = null;
+      notifyListeners();
+
+      return true;
+    } catch (e) {
+      _error = 'Unable to delete question.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Record a selected answer.
   void answerQuestion(int answerIndex) {
     final question = currentQuestion;
 
@@ -232,6 +287,7 @@ class QuizProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Move to the next question.
   bool nextQuestion() {
     if (_currentQuestionIndex + 1 >=
         _currentQuizQuestions.length) {
@@ -240,9 +296,11 @@ class QuizProvider extends ChangeNotifier {
 
     _currentQuestionIndex++;
     notifyListeners();
+
     return true;
   }
 
+  // Save the best score.
   Future<void> finishQuiz() async {
     if (_currentCategoryId == null) return;
 

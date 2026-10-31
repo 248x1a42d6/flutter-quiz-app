@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../providers/quiz_provider.dart';
 import '../theme/app_theme.dart';
 import 'add_question_screen.dart';
+import 'manage_questions_screen.dart';
 import 'question_screen.dart';
 
 class CategoryScreen extends StatelessWidget {
@@ -31,10 +32,42 @@ class CategoryScreen extends StatelessWidget {
         ),
         centerTitle: true,
         backgroundColor: AppTheme.background,
+        actions: [
+          IconButton(
+            tooltip: 'Manage Questions',
+            icon: const Icon(Icons.edit_note_rounded),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                  const ManageQuestionsScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: provider.isLoading &&
           provider.currentQuizQuestions.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+        child: CircularProgressIndicator(),
+      )
+          : provider.error != null &&
+          provider.currentCategoryId == null
+          ? Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(provider.error!),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: provider.loadData,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      )
           : _buildHome(context, provider),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppTheme.primary,
@@ -45,7 +78,8 @@ class CategoryScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const AddQuestionScreen(),
+              builder: (_) =>
+              const AddQuestionScreen(),
             ),
           );
         },
@@ -110,7 +144,9 @@ class CategoryScreen extends StatelessWidget {
           style: Theme.of(context)
               .textTheme
               .headlineSmall
-              ?.copyWith(fontWeight: FontWeight.bold),
+              ?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
 
         const SizedBox(height: 16),
@@ -123,13 +159,11 @@ class CategoryScreen extends StatelessWidget {
         ...List.generate(categories.length, (index) {
           final category = categories[index];
 
-          final icon =
-          categoryIcons[index % categoryIcons.length];
+          final icon = categoryIcons[
+          index % categoryIcons.length];
 
           final color = AppTheme.categoryColor(index);
 
-          // API questions are loaded when the quiz starts,
-          // so don't show an inaccurate question count here.
           return Container(
             margin: const EdgeInsets.only(bottom: 14),
             child: Material(
@@ -146,7 +180,8 @@ class CategoryScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const QuestionScreen(),
+                      builder: (_) =>
+                      const QuestionScreen(),
                     ),
                   );
                 },
@@ -157,8 +192,11 @@ class CategoryScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(16),
+                          color: color.withValues(
+                            alpha: 0.12,
+                          ),
+                          borderRadius:
+                          BorderRadius.circular(16),
                         ),
                         child: Icon(
                           icon,
@@ -183,7 +221,8 @@ class CategoryScreen extends StatelessWidget {
                             Text(
                               category.description,
                               style: TextStyle(
-                                color: colors.onSurfaceVariant,
+                                color:
+                                colors.onSurfaceVariant,
                               ),
                             ),
                           ],
