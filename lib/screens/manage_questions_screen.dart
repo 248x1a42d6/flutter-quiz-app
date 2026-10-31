@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../models/question.dart';
 import '../providers/quiz_provider.dart';
+import 'question_detail_screen.dart';
 
 class ManageQuestionsScreen extends StatelessWidget {
   const ManageQuestionsScreen({super.key});
@@ -36,16 +37,37 @@ class ManageQuestionsScreen extends StatelessWidget {
 
           return Card(
             child: ListTile(
+              // GP5: Open the full question details.
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        QuestionDetailScreen(
+                          question: question,
+                        ),
+                  ),
+                );
+              },
+
               leading: const Icon(
                 Icons.quiz_outlined,
               ),
-              title: Text(question.questionText),
+
+              title: Text(
+                question.questionText,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+
               subtitle: Text(
                 'Category: ${_categoryName(
                   provider,
                   question.categoryId,
                 )}',
               ),
+
+              // Preserve existing delete functionality.
               trailing: IconButton(
                 icon: Icon(
                   Icons.delete_outline,
@@ -67,6 +89,7 @@ class ManageQuestionsScreen extends StatelessWidget {
     );
   }
 
+  // Convert category ID into a readable category name.
   String _categoryName(
       QuizProvider provider,
       String categoryId,
@@ -80,6 +103,7 @@ class ManageQuestionsScreen extends StatelessWidget {
     return categoryId;
   }
 
+  // Ask for confirmation before deleting a question.
   Future<void> _confirmDelete(
       BuildContext context,
       QuizProvider provider,
