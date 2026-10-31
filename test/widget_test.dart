@@ -7,7 +7,7 @@ import 'package:quiz_app/providers/quiz_provider.dart';
 import 'package:quiz_app/screens/category_screen.dart';
 
 void main() {
-  testWidgets('Quiz categories display correctly', (
+  testWidgets('GP3 - Categories populated state', (
       WidgetTester tester,
       ) async {
     final provider = QuizProvider();
@@ -50,6 +50,33 @@ void main() {
     expect(
       find.text('History'),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('GP3 - Categories empty state', (
+      WidgetTester tester,
+      ) async {
+    final provider = QuizProvider(
+      testCategories: [],
+    );
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider<QuizProvider>.value(
+        value: provider,
+        child: const MaterialApp(
+          home: CategoryScreen(),
+        ),
+      ),
+    );
+
+    expect(
+      find.text('No quiz categories available.'),
+      findsOneWidget,
+    );
+
+    expect(
+      find.text('General Knowledge'),
+      findsNothing,
     );
   });
 }

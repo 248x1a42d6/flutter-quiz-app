@@ -10,7 +10,8 @@ class QuestionScreen extends StatefulWidget {
   const QuestionScreen({super.key});
 
   @override
-  State<QuestionScreen> createState() => _QuestionScreenState();
+  State<QuestionScreen> createState() =>
+      _QuestionScreenState();
 }
 
 class _QuestionScreenState extends State<QuestionScreen> {
@@ -27,10 +28,9 @@ class _QuestionScreenState extends State<QuestionScreen> {
         title: const Text('Quiz Questions'),
         centerTitle: true,
       ),
-      body: provider.isLoading
+      body: provider.isQuizLoading
           ? _buildLoading()
-          : provider.error != null &&
-          questions.isEmpty
+          : provider.quizError != null && questions.isEmpty
           ? _buildError(context, provider)
           : questions.isEmpty
           ? _buildEmpty()
@@ -72,28 +72,21 @@ class _QuestionScreenState extends State<QuestionScreen> {
             Icon(
               Icons.wifi_off_rounded,
               size: 56,
-              color: Theme.of(context)
-                  .colorScheme
-                  .error,
+              color: Theme.of(context).colorScheme.error,
             ),
             const SizedBox(height: 16),
             Text(
-              provider.error ??
+              provider.quizError ??
                   'Unable to load questions.',
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
             FilledButton.icon(
-              onPressed: () {
+              onPressed: provider.isQuizLoading
+                  ? null
+                  : () {
                 final categoryId =
-                    provider.categories
-                        .where(
-                          (category) =>
-                      category.id ==
-                          _selectedCategoryId(provider),
-                    )
-                        .firstOrNull
-                        ?.id;
+                    provider.currentCategoryId;
 
                 if (categoryId != null) {
                   provider.startQuiz(categoryId);
@@ -106,21 +99,6 @@ class _QuestionScreenState extends State<QuestionScreen> {
         ),
       ),
     );
-  }
-
-  String? _selectedCategoryId(
-      QuizProvider provider,
-      ) {
-    for (final category in provider.categories) {
-      if (provider.currentQuizQuestions.any(
-            (question) =>
-        question.categoryId == category.id,
-      )) {
-        return category.id;
-      }
-    }
-
-    return provider.currentCategoryId;
   }
 
   Widget _buildEmpty() {
@@ -174,16 +152,17 @@ class _QuestionScreenState extends State<QuestionScreen> {
               ],
             ),
           ),
+
           Expanded(
             child: SingleChildScrollView(
               child: QuestionCard(
                 question: question,
                 selectedAnswerIndex: selectedAnswer,
-                onAnswerSelected:
-                provider.answerQuestion,
+                onAnswerSelected: provider.answerQuestion,
               ),
             ),
           ),
+
           Padding(
             padding: const EdgeInsets.all(16),
             child: SizedBox(
