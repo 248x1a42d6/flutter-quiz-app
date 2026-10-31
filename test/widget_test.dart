@@ -41,6 +41,12 @@ void main() {
       findsOneWidget,
     );
 
+    await tester.scrollUntilVisible(
+      find.text('History'),
+      150,
+      scrollable: find.byType(Scrollable).first,
+    );
+
     expect(
       find.text('History'),
       findsOneWidget,
