@@ -76,6 +76,8 @@ class CategoryScreen extends StatelessWidget {
             subtitle: Text(category.description),
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () {
+              if (provider.isLoading) return;
+
               provider.startQuiz(category.id);
 
               Navigator.push(
