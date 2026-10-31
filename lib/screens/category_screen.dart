@@ -28,7 +28,9 @@ class CategoryScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Quiz Master',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         backgroundColor: AppTheme.background,
@@ -48,27 +50,16 @@ class CategoryScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: provider.isLoading &&
-          provider.currentQuizQuestions.isEmpty
+
+      // Home Screen states are independent of Quiz API states.
+      body: provider.isLoading
           ? const Center(
         child: CircularProgressIndicator(),
       )
-          : provider.error != null &&
-          provider.currentCategoryId == null
-          ? Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(provider.error!),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: provider.loadData,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      )
+          : provider.error != null
+          ? _buildError(context, provider)
           : _buildHome(context, provider),
+
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppTheme.primary,
         foregroundColor: colors.onPrimary,
@@ -87,6 +78,44 @@ class CategoryScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildError(
+      BuildContext context,
+      QuizProvider provider,
+      ) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              color: colors.error,
+              size: 56,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              provider.error ??
+                  'Unable to load quiz data.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge,
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: provider.loadData,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildHome(
       BuildContext context,
       QuizProvider provider,
@@ -94,8 +123,36 @@ class CategoryScreen extends StatelessWidget {
     final categories = provider.categories;
     final colors = Theme.of(context).colorScheme;
 
+    if (categories.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.inbox_outlined,
+                size: 60,
+                color: colors.onSurfaceVariant,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'No quiz categories available.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        16,
+        20,
+        100,
+      ),
       children: [
         Container(
           padding: const EdgeInsets.all(24),
@@ -151,11 +208,6 @@ class CategoryScreen extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        if (categories.isEmpty)
-          const Center(
-            child: Text('No quiz categories available'),
-          ),
-
         ...List.generate(categories.length, (index) {
           final category = categories[index];
 
@@ -172,8 +224,12 @@ class CategoryScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
+
                 onTap: () {
-                  if (provider.isLoading) return;
+                  if (provider.isLoading ||
+                      provider.isQuizLoading) {
+                    return;
+                  }
 
                   provider.startQuiz(category.id);
 
@@ -185,6 +241,7 @@ class CategoryScreen extends StatelessWidget {
                     ),
                   );
                 },
+
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Row(
@@ -204,7 +261,9 @@ class CategoryScreen extends StatelessWidget {
                           size: 30,
                         ),
                       ),
+
                       const SizedBox(width: 16),
+
                       Expanded(
                         child: Column(
                           crossAxisAlignment:
@@ -228,6 +287,7 @@ class CategoryScreen extends StatelessWidget {
                           ],
                         ),
                       ),
+
                       Icon(
                         Icons.arrow_forward_ios_rounded,
                         color: color,
