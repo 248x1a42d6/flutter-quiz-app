@@ -3,93 +3,205 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/quiz_provider.dart';
+import '../theme/app_theme.dart';
+import 'add_question_screen.dart';
 import 'question_screen.dart';
 
 class CategoryScreen extends StatelessWidget {
   const CategoryScreen({super.key});
 
+  static const List<IconData> categoryIcons = [
+    Icons.public,
+    Icons.science,
+    Icons.calculate,
+    Icons.account_balance,
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final quizProvider = context.watch<QuizProvider>();
+    final provider = context.watch<QuizProvider>();
+    final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Quiz Categories'),
+        title: const Text(
+          'Quiz Master',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
+        backgroundColor: AppTheme.background,
       ),
-      body: _buildBody(context, quizProvider),
+      body: provider.isLoading &&
+          provider.currentQuizQuestions.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : _buildHome(context, provider),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Add Question screen navigation
-          // will be connected during integration.
-        },
+        backgroundColor: AppTheme.primary,
+        foregroundColor: colors.onPrimary,
         icon: const Icon(Icons.add),
         label: const Text('Add Question'),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AddQuestionScreen(),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildBody(
+  Widget _buildHome(
       BuildContext context,
       QuizProvider provider,
       ) {
-    if (provider.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
-    if (provider.error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(provider.error!),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: provider.loadData,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
-    }
-
     final categories = provider.categories;
+    final colors = Theme.of(context).colorScheme;
 
-    if (categories.isEmpty) {
-      return const Center(
-        child: Text('No quiz categories available'),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: categories.length,
-      itemBuilder: (context, index) {
-        final category = categories[index];
-
-        return Card(
-          child: ListTile(
-            leading: const Icon(Icons.quiz_outlined),
-            title: Text(category.name),
-            subtitle: Text(category.description),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {
-              if (provider.isLoading) return;
-
-              provider.startQuiz(category.id);
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const QuestionScreen(),
-                ),
-              );
-            },
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppTheme.primary,
+                AppTheme.primary.withValues(alpha: 0.75),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
           ),
-        );
-      },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.auto_awesome,
+                color: colors.onPrimary,
+                size: 36,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Welcome to Quiz Master!',
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Choose a category and challenge yourself.',
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 15,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 28),
+
+        Text(
+          'Explore Categories',
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+
+        const SizedBox(height: 16),
+
+        if (categories.isEmpty)
+          const Center(
+            child: Text('No quiz categories available'),
+          ),
+
+        ...List.generate(categories.length, (index) {
+          final category = categories[index];
+
+          final icon =
+          categoryIcons[index % categoryIcons.length];
+
+          final color = AppTheme.categoryColor(index);
+
+          // API questions are loaded when the quiz starts,
+          // so don't show an inaccurate question count here.
+          return Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            child: Material(
+              color: colors.surface,
+              elevation: 2,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  if (provider.isLoading) return;
+
+                  provider.startQuiz(category.id);
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const QuestionScreen(),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          icon,
+                          color: color,
+                          size: 30,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              category.name,
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              category.description,
+                              style: TextStyle(
+                                color: colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: color,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
     );
   }
 }

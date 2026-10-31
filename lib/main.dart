@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'providers/quiz_provider.dart';
 import 'screens/category_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,14 +19,9 @@ class QuizApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => QuizProvider()..loadData(),
       child: MaterialApp(
-        title: 'Quiz Application',
+        title: 'Quiz Master',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple,
-          ),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.lightTheme,
         home: const CategoryScreen(),
       ),
     );
