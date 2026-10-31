@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../models/question.dart';
 import '../models/quiz_category.dart';
 import '../services/quiz_service.dart';
+import '../services/question_bank.dart';
 
 class QuizProvider extends ChangeNotifier {
   final QuizService _service = QuizService();
@@ -84,7 +85,12 @@ class QuizProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _questions = await _service.loadQuestions();
+      final customQuestions = await _service.loadQuestions();
+
+      _questions = [
+        ...QuestionBank.questions,
+        ...customQuestions,
+      ];
       _bestScores = await _service.loadBestScores();
     } catch (e) {
       _error = 'Unable to load quiz data. Please retry.';
@@ -112,9 +118,22 @@ class QuizProvider extends ChangeNotifier {
     }
 
     try {
-      final updated = [..._questions, question];
-      await _service.saveQuestions(updated);
-      _questions = updated;
+      final customQuestions = _questions
+          .where((q) => !QuestionBank.questions
+          .any((builtIn) => builtIn.id == q.id))
+          .toList();
+
+      final updatedCustomQuestions = [
+        ...customQuestions,
+        question,
+      ];
+
+      await _service.saveQuestions(updatedCustomQuestions);
+
+      _questions = [
+        ..._questions,
+        question,
+      ];
       _error = null;
       notifyListeners();
       return true;
