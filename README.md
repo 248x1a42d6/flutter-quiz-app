@@ -261,7 +261,6 @@ installed, and tested on a physical Android phone.
 | Correct answer automatically selected | Open the original Add Question form without selecting a correct answer | Changed the default answer to null and added mandatory selection validation | Fixed |
 | Long questions and options needed layout verification | Add a question near the text limits and open Question Details | Verified text wrapping and scrolling without visible overflow | Verified |
 | Landscape layout needed verification | Rotate the phone while viewing quiz questions | Verified scrolling, answer selection persistence, and navigation | Verified |
-
 | Best Score not visible after restarting the app | Complete a quiz, close the app, and reopen it. The previous best score was not displayed on the Category Screen | Added Best Score indicators to all category cards using saved scores from QuizProvider. Verified persistence after restarting | Fixed in v1.0.1 |
 
 
