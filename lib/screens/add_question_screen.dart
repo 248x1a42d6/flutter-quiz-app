@@ -25,7 +25,10 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
   );
 
   String? _selectedCategoryId;
-  int _correctAnswerIndex = 0;
+
+  // No correct answer is selected by default.
+  int? _correctAnswerIndex;
+
   bool _isSaving = false;
 
   @override
@@ -42,6 +45,7 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
   Future<void> _saveQuestion() async {
     if (_isSaving) return;
 
+    // Validate the category, question and all four options.
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -50,6 +54,16 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select a category'),
+        ),
+      );
+      return;
+    }
+
+    // Require the user to select a correct answer.
+    if (_correctAnswerIndex == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select the correct answer'),
         ),
       );
       return;
@@ -66,7 +80,7 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
       options: _optionControllers
           .map((controller) => controller.text.trim())
           .toList(),
-      correctAnswerIndex: _correctAnswerIndex,
+      correctAnswerIndex: _correctAnswerIndex!,
     );
 
     final provider = context.read<QuizProvider>();
@@ -138,6 +152,13 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please select a category';
                   }
+
+                  if (!categories.any(
+                        (category) => category.id == value,
+                  )) {
+                    return 'Please select a valid category';
+                  }
+
                   return null;
                 },
               ),
@@ -221,9 +242,8 @@ class _AddQuestionScreenState extends State<AddQuestionScreen> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: _isSaving
-                      ? null
-                      : _saveQuestion,
+                  onPressed:
+                  _isSaving ? null : _saveQuestion,
                   icon: _isSaving
                       ? const SizedBox(
                     width: 18,
